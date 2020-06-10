@@ -1,13 +1,17 @@
+import random
+
 from models.plan import Plan
 from models.clock import Clock
+from models.order import Order
 
 
-class Game(object):
-    def __init_(self, plan):
+class Game():
+    def __init__(self, plan):
         self.vehicles = []
         self.orders = []
         self.plan = plan
         self.clock = Clock()
+        self._init_vehicles()
 
     def _init_vehicles(self):
         self.vehicles = self.plan.insert_vehicles()
@@ -20,15 +24,15 @@ class Game(object):
                 - starting point within a radius of 1 km
                 - ending point within a radius of 10 km
         """
-        pass
+        return []
 
     def _get_available_vehicles(self, order):
         """
             Get a list of all available vehicles sorted by distance with order
         """
-        pass
+        return []
 
-    def _start_ride(self):
+    def _start_ride(self, order, vehicles):
         """
             - Time from nearest vehicle to order
                 - Compute time from vehicle to further address.
@@ -43,13 +47,20 @@ class Game(object):
                 - Compute time from current to further address
                 - Add 2 minutes for each stop
         """
-        pass
+        return []
 
-    def _new_order(self):
+    def _new_orders(self):
         """
             Add a new order to the game with position X, Y
+
+            TODO:
         """
-        pass
+        orders = random.randint(0, 10)
+
+        for _ in range(orders):
+            start = self.plan.create_address()
+            end = self.plan.create_address()
+            self.orders.append(Order(start, end))
 
     def run(self):
         """
@@ -57,4 +68,12 @@ class Game(object):
 
             Simulate a week of transportation.
         """
-        pass
+        while self.clock.next() > 0:
+            self._new_orders() # Get new orders
+            self._cluster_orders() # Try to cluster orders
+
+            for order in self.orders:
+                vehicles = self._get_available_vehicles(order)
+                self._start_ride(order, vehicles)
+            
+        print("Done")

@@ -11,5 +11,5 @@ if __name__ == "__main__":
 
     vehicles = plan.insert_vehicles()
 
-    game = Game()
+    game = Game(plan)
     game.run()

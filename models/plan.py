@@ -2,8 +2,8 @@ from random import choices
 
 import requests
 
-from city import City
-from vehicle import Vehicle
+from .city import City
+from .vehicle import Vehicle
 
 
 class Plan():
@@ -48,6 +48,13 @@ class Plan():
                 url += "&"
             url += key + "=" + val
         return url
+
+    def create_address(self):
+        population = range(0, len(self.cities))
+        weights = [city.importance for city in self.cities]
+
+        city = self.cities[choices(population, weights)[0]]
+        return city.get_random_point()
 
     def insert_vehicles(self, vehicle_count=10):
         population = range(0, len(self.cities))
