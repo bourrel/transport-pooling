@@ -1,4 +1,6 @@
+from .position import Position
 from random import uniform
+
 
 class City():
     def __init__(self, properties, bbox):
@@ -24,4 +26,4 @@ class City():
         """
         x = uniform(self.bbox[1], self.bbox[3])
         y = uniform(self.bbox[0], self.bbox[2])
-        return (x, y)
+        return Position(x, y)

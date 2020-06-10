@@ -1,6 +1,7 @@
 from enum import Enum
 
-from position import Position
+from .position import Position
+
 
 class OrderStatus(Enum):
     UNAVALAIBLE = 1
