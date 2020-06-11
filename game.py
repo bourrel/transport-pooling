@@ -54,6 +54,10 @@ class Game():
             Add a new order to the game with position X, Y
 
             TODO:
+                Generate orders following a multi-variate distribution which will peak at:
+                - 8h30
+                - 13h
+                - 18h
         """
         orders = random.randint(0, 10)
 
