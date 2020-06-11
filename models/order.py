@@ -32,3 +32,25 @@ class Order():
             Add new ride to the order.
         """
         pass
+
+    def get_begin_centroid(self):
+        if len(self.begin) == 1:
+            return self.begin[0]
+
+        centroid_x = 0
+        centroid_y = 0
+        for (x, y) in self.begin:
+            centroid_x += x
+            centroid_y += y
+        return Position((centroid_x / len(self.begin)), (centroid_y / len(self.begin)))
+
+    def get_destination_centroid(self):
+        if len(self.destinations) == 1:
+            return self.destinations[0]
+
+        centroid_x = 0
+        centroid_y = 0
+        for (x, y) in self.destinations:
+            centroid_x += x
+            centroid_y += y
+        return Position((centroid_x / len(self.destinations)), (centroid_y / len(self.destinations)))
