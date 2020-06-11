@@ -1,3 +1,4 @@
+from uuid import uuid4
 from enum import Enum
 
 from .position import Position
@@ -17,21 +18,17 @@ class Order():
     """
 
     def __init__(self, start: Position, end: Position):
+        self._id = uuid4()
         self.begin = [start]
         self.destinations = [end]
         self.status = OrderStatus.UNAVALAIBLE
 
-    def is_near(self, start: Position, end: Position):
-        """
-            Check if a new ride can be added to this order
-        """
-        pass
-
-    def insert_order(self, start: Position, end: Position):
+    def insert_order(self, new_order):
         """
             Add new ride to the order.
         """
-        pass
+        self.begin.extend(new_order.begin)
+        self.destinations.extend(new_order.destinations)
 
     def get_begin_centroid(self):
         if len(self.begin) == 1:
@@ -39,9 +36,9 @@ class Order():
 
         centroid_x = 0
         centroid_y = 0
-        for (x, y) in self.begin:
-            centroid_x += x
-            centroid_y += y
+        for position in self.begin:
+            centroid_x += position.latitude
+            centroid_y += position.longitude
         return Position((centroid_x / len(self.begin)), (centroid_y / len(self.begin)))
 
     def get_destination_centroid(self):
@@ -50,7 +47,7 @@ class Order():
 
         centroid_x = 0
         centroid_y = 0
-        for (x, y) in self.destinations:
-            centroid_x += x
-            centroid_y += y
+        for position in self.destinations:
+            centroid_x += position.latitude
+            centroid_y += position.longitude
         return Position((centroid_x / len(self.destinations)), (centroid_y / len(self.destinations)))
