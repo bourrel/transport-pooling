@@ -2,6 +2,7 @@ import random
 
 import mpu
 
+from models.vehicle import VehicleStatus
 from models.clock import Clock
 from models.order import Order
 from models.plan import Plan
@@ -75,11 +76,18 @@ class Game():
             else:
                 self.orders.append(new_order)
 
-    def _get_available_vehicles(self, order):
+    def _get_nearest_vehicles(self, order):
         """
             Get a list of all available vehicles sorted by distance with order
         """
-        return []
+        vehicle_list = []
+        for idx, vehicle in enumerate(self.vehicles):
+            if vehicle.status == VehicleStatus.WAITING:
+                distance = self._get_position_distance(vehicle.position, order.get_begin_centroid())
+                vehicle_list.append((idx, distance))
+
+        nearest_vehicles = sorted(vehicle_list, key=lambda vh: vh[1])[:10]
+        return [self.vehicles[vh_idx] for vh_idx, _ in nearest_vehicles]
 
     def _start_ride(self, order, vehicles):
         """
@@ -128,7 +136,8 @@ class Game():
             self._cluster_or_insert_orders(new_orders) # Try to cluster orders
 
             for order in self.orders:
-                vehicles = self._get_available_vehicles(order)
+                vehicles = self._get_nearest_vehicles(order)
+
                 self._start_ride(order, vehicles)
 
         print("Done")
