@@ -21,7 +21,7 @@ class Game():
     def _init_vehicles(self):
         self.vehicles = self.plan.insert_vehicles()
 
-    def _order_distance(self, first_pos, second_pos):
+    def _get_position_distance(self, first_pos, second_pos):
         """
             Get distance between two points on earth
         """
@@ -35,14 +35,14 @@ class Game():
         first_begin_pos = first_order.get_begin_centroid()
         second_begin_pos = second_order.get_begin_centroid()
 
-        distance_begin = self._order_distance(first_begin_pos, second_begin_pos)
+        distance_begin = self._get_position_distance(first_begin_pos, second_begin_pos)
         if distance_begin > MAX_START_RADIUS:
             return False, -1, -1
 
         first_destination_pos = first_order.get_destination_centroid()
         second_destination_pos = second_order.get_destination_centroid()
 
-        distance_end = self._order_distance(first_destination_pos, second_destination_pos)
+        distance_end = self._get_position_distance(first_destination_pos, second_destination_pos)
         if distance_end >= MAX_START_RADIUS:
             return False, -1, -1
 
