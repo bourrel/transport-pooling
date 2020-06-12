@@ -23,6 +23,9 @@ class Order():
         self.destinations = [end]
         self.status = OrderStatus.UNAVALAIBLE
 
+    def change_status(self, status):
+        self.status = status
+
     def insert_order(self, new_order):
         """
             Add new ride to the order.

@@ -4,7 +4,7 @@ import mpu
 
 from models.vehicle import VehicleStatus
 from models.clock import Clock
-from models.order import Order
+from models.order import Order, OrderStatus
 from models.plan import Plan
 
 MAX_START_RADIUS = 1000 # 1 km
@@ -122,7 +122,9 @@ class Game():
         for _ in range(orders):
             start = self.plan.create_address()
             end = self.plan.create_address()
-            new_orders.append(Order(start, end))
+            order = Order(start, end)
+            new_orders.append(order)
+            self.clock.postpone_action(action=order.change_status, wait=2, args=[OrderStatus.WAITING])
         return new_orders
 
     def run(self):
