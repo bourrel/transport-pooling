@@ -7,7 +7,8 @@ from .position import Position
 class OrderStatus(Enum):
     UNAVALAIBLE = 1
     WAITING = 2
-    DONE = 3
+    IN_PROGRESS = 3
+    DONE = 4
 
 
 class Order():

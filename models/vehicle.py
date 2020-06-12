@@ -17,3 +17,6 @@ class Vehicle():
     @classmethod
     def from_city(cls, city):
         return cls(city.get_random_point())
+
+    def change_status(self, status):
+        self.status = status
