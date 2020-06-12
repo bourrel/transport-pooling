@@ -16,12 +16,12 @@ class Clock():
 
     def next(self):
         if self.time >= 1440:
-            self.time = -1
+            return False
         else:
             self.time += 1
 
         self._execute_queue()
-        return self.time
+        return True
 
     def _execute_queue(self):
         temp_queu = self.action_queue

@@ -133,7 +133,7 @@ class Game():
 
             Simulate a week of transportation.
         """
-        while self.clock.next() > 0:
+        while self.clock.next():
             new_orders = self._new_orders() # Get new orders
             self._cluster_or_insert_orders(new_orders) # Try to cluster orders
 
