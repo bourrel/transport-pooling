@@ -208,8 +208,8 @@ class Game():
             - Change vehicle position
             - Change order to DONE
         """
-        vehicle.change_status(OrderStatus.DONE)
-        vehicle.change_status(VehicleStatus.DROP_PASSENGERS)
+        order.change_status(OrderStatus.DONE)
+        vehicle.change_status(VehicleStatus.WAITING)
         vehicle.position = position
 
     def _new_orders(self):
