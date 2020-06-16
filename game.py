@@ -1,3 +1,4 @@
+import csv
 import random
 import math
 
@@ -13,12 +14,25 @@ MAX_END_RADIUS = 5000 # 5 km
 
 
 class Game():
-    def __init__(self, plan):
+    def __init__(self, plan, out_file):
         self.vehicles = []
         self.orders = []
         self.plan = plan
         self.clock = Clock()
         self._init_vehicles()
+        out_file = open(out_file, "w")
+        self.out_file = csv.writer(out_file)
+        self.out_file.writerow([
+            "Order count", 
+            "Order unavailable",
+            "Order waiting",
+            "Order in progress",
+            "Order done",
+            "Vehicle waiting",
+            "Vehicle driving",
+            "Vehicle loading",
+            "Vehicle dropping",
+        ])
 
     def _init_vehicles(self):
         self.vehicles = self.plan.insert_vehicles()
@@ -217,7 +231,24 @@ class Game():
             order = Order(start, end)
             new_orders.append(order)
             self.clock.postpone_action(action=order.change_status, wait=2, args=[OrderStatus.WAITING])
-        return new_orders
+        return new_orders, orders
+
+    def _report(self, order_count):
+        order_status = [order.status for order in self.orders]
+        vehicle_status = [vehicle.status for vehicle in self.vehicles]
+
+        self.out_file.writerow([
+            order_count,
+            order_status.count(OrderStatus.UNAVALAIBLE),
+            order_status.count(OrderStatus.WAITING),
+            order_status.count(OrderStatus.IN_PROGRESS),
+            order_status.count(OrderStatus.DONE),
+            vehicle_status.count(VehicleStatus.WAITING),
+            vehicle_status.count(VehicleStatus.DRIVING),
+            vehicle_status.count(VehicleStatus.LOADING_PASSENGERS),
+            vehicle_status.count(VehicleStatus.DROP_PASSENGERS),
+        ])
+        return 0
 
     def run(self):
         """
@@ -226,12 +257,12 @@ class Game():
             Simulate a week of transportation.
         """
         while self.clock.next():
-            new_orders = self._new_orders() # Get new orders
+            new_orders, order_count = self._new_orders() # Get new orders
             self._cluster_or_insert_orders(new_orders) # Try to cluster orders
 
             for order in self.orders:
                 vehicles = self._get_nearest_vehicles(order)
                 if len(vehicles) > 0:
                     self._start_loading(order, vehicles)
-
+            self._report(order_count)
         print("Done")

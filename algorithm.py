@@ -6,6 +6,7 @@ from game import Game
 parser = argparse.ArgumentParser()
 parser.add_argument('--cities', nargs='+', type=str, help='List of cities splitted by "," to add to plan')
 parser.add_argument('--file', type=str, help='List of cities splitted by "," to add to plan')
+parser.add_argument('out_file', type=str, help='CSV output')
 args = parser.parse_args()
 
 
@@ -27,5 +28,5 @@ if __name__ == "__main__":
 
     vehicles = plan.insert_vehicles()
 
-    game = Game(plan)
+    game = Game(plan, args.out_file)
     game.run()
