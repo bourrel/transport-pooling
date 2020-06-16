@@ -26,7 +26,5 @@ if __name__ == "__main__":
     for city in plan.cities:
         print(city.name, ":", city.importance, ",", city.population)
 
-    vehicles = plan.insert_vehicles()
-
     game = Game(plan, args.out_file)
     game.run()
