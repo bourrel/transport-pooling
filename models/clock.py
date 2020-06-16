@@ -13,9 +13,10 @@ class Clock():
     def __init__(self):
         self.time = 0
         self.action_queue = []
+        self.max = 1440
 
     def next(self):
-        if self.time >= 1440:
+        if self.time >= self.max:
             return False
         else:
             self.time += 1

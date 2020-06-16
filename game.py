@@ -132,7 +132,7 @@ class Game():
             distances.append(self._get_position_distance(departures, nearest_vehicle.position))
 
         max_distance = max(distances)
-        waiting_time = self._get_ride_time(max_distance, stops=len(order.begin))
+        waiting_time = self._get_ride_time(max_distance, stops=len(order.begin) - 1)
 
         next_position_idx = [idx for idx, d in enumerate(distances) if d == max_distance][0]
         next_position = order.begin[next_position_idx]
@@ -269,5 +269,5 @@ class Game():
                 vehicles = self._get_nearest_vehicles(order)
                 if len(vehicles) > 0:
                     self._start_loading(order, vehicles)
-            self._report(order_count)
+            progress_bar.update(1)
         print("Done")
