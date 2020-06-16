@@ -56,12 +56,12 @@ class Plan():
         city = self.cities[choices(population, weights)[0]]
         return city.get_random_point()
 
-    def insert_vehicles(self, vehicle_count=10):
+    def insert_vehicles(self, vehicle_count=10, game_id=None):
         population = range(0, len(self.cities))
         weights = [city.importance for city in self.cities]
 
         vehicles = []
         for _ in range(vehicle_count):
             city = self.cities[choices(population, weights)[0]]
-            vehicles.append(Vehicle.from_city(city))
+            vehicles.append(Vehicle.from_city(city, game_id))
         return vehicles

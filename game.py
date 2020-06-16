@@ -1,14 +1,15 @@
 import csv
-import random
 import math
+import random
 
 import mpu
 from tqdm import tqdm
 
-from models.vehicle import VehicleStatus
+from config.database import cursor, db
 from models.clock import Clock
 from models.order import Order, OrderStatus
 from models.plan import Plan
+from models.vehicle import VehicleStatus
 
 MAX_START_RADIUS = 1000 # 1 km
 MAX_END_RADIUS = 5000 # 5 km
@@ -16,11 +17,11 @@ MAX_END_RADIUS = 5000 # 5 km
 
 class Game():
     def __init__(self, plan, out_file):
+        self._id = None
         self.vehicles = []
         self.orders = []
         self.plan = plan
         self.clock = Clock()
-        self._init_vehicles()
         out_file = open(out_file, "w")
         self.out_file = csv.writer(out_file)
         self.out_file.writerow([
@@ -34,9 +35,18 @@ class Game():
             "Vehicle loading",
             "Vehicle dropping",
         ])
+        self._save_in_database()
+        self._init_vehicles()
+
+    def _save_in_database(self):
+        cities = ", ".join([str(c) for c in self.plan.cities])
+        query = "INSERT INTO game SET cities = \"{}\";".format(cities)
+        cursor.execute(query)
+        db.commit()
+        self._id = cursor.lastrowid
 
     def _init_vehicles(self):
-        self.vehicles = self.plan.insert_vehicles()
+        self.vehicles = self.plan.insert_vehicles(game_id=self._id)
 
     def _get_position_distance(self, first_pos, second_pos):
         """

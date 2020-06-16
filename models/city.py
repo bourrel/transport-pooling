@@ -27,3 +27,6 @@ class City():
         x = uniform(self.bbox[1], self.bbox[3])
         y = uniform(self.bbox[0], self.bbox[2])
         return Position(x, y)
+
+    def __repr__(self):
+        return self.name
