@@ -3,6 +3,7 @@ import random
 import math
 
 import mpu
+from tqdm import tqdm
 
 from models.vehicle import VehicleStatus
 from models.clock import Clock
@@ -256,7 +257,11 @@ class Game():
 
             Simulate a week of transportation.
         """
+        order_count = 0
+
+        progress_bar = tqdm(self.clock.max + 1)
         while self.clock.next():
+            self._report(order_count)
             new_orders, order_count = self._new_orders() # Get new orders
             self._cluster_or_insert_orders(new_orders) # Try to cluster orders
 
