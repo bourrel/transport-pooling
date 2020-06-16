@@ -53,7 +53,7 @@ class Game():
     def _get_new_order_possible_clusters(self, new_order):
         possible_clusters = []
 
-        waiting_orders = [order for order in self.orders if order.status != OrderStatus.DONE]
+        waiting_orders = [order for order in self.orders if order.status not in [OrderStatus.IN_PROGRESS, OrderStatus.DONE]]
         for idx, order in enumerate(waiting_orders):
             can_be_clustered, distance_begin, distance_end = self._can_be_clustered(order, new_order)
             if can_be_clustered:
@@ -104,7 +104,7 @@ class Game():
 
     def _start_loading(self, order, vehicles):
         """
-            - Time from nearest vehicle to order
+            - Time from nearest vehicle to order departure
                 - Compute time from vehicle to further address.
                 - Add 2 minutes for each stop
             - Change order status to WAITING
@@ -119,20 +119,84 @@ class Game():
         max_distance = max(distances)
         waiting_time = self._get_ride_time(max_distance, stops=len(order.begin))
 
-        nearest_vehicle.status = VehicleStatus.LOADING_PASSENGERS
-        self.clock.postpone_action(action=self._start_ride, wait=waiting_time, args=[order, nearest_vehicle])
+        next_position_idx = [idx for idx, d in enumerate(distances) if d == max_distance][0]
+        next_position = order.begin[next_position_idx]
 
-    def _start_ride(self, order, vehicle):
+        nearest_vehicle.change_status(VehicleStatus.LOADING_PASSENGERS)
+        self.clock.postpone_action(action=self._start_ride, wait=waiting_time, args=[order, nearest_vehicle, next_position])
+
+    def _start_ride(self, order, vehicle, position):
         """
-            After time from vehicle to order:
+            Once a vehicle has made a ride to departure, load all passengers.
+
             - Change order status to DONE
             - Change vehicle status to DRIVING
+            - Change vehicle position
+            - Compute driving time for vehicle
+                - Compute time from current to nearest destination address
+        """
+        order.change_status(OrderStatus.IN_PROGRESS)
+        vehicle.change_status(VehicleStatus.DRIVING)
+        vehicle.position = position
+
+        distances = []
+        for arrivals in order.destinations:
+            distances.append(self._get_position_distance(arrivals, vehicle.position))
+
+        min_distance = min(distances)
+        waiting_time = self._get_ride_time(min_distance)
+
+        next_position_idx = [idx for idx, d in enumerate(distances) if d == min_distance][0]
+        next_position = order.destinations[next_position_idx]
+
+        self.clock.postpone_action(
+            action=self._start_drop,
+            wait=waiting_time,
+            args=[order, vehicle, next_position]
+        )
+
+    def _start_drop(self, order, vehicle, position):
+        """
+            Once the vehicle has made the ride to first dropping zone.
+
+            - Change vehicle status to DROP_PASSENGERS
+            - Change vehicle position
             - Compute driving time for vehicle
                 - Compute time from current to further address
                 - Add 2 minutes for each stop
         """
-        order.change_status(OrderStatus.DONE)
-        vehicle.status = VehicleStatus.DRIVING
+        vehicle.change_status(VehicleStatus.DROP_PASSENGERS)
+        vehicle.position = position
+
+        if len(order.destinations) == 1:
+            self._stop_ride(order, vehicle, position)
+        else:
+            distances = []
+            for arrivals in order.destinations:
+                distances.append(self._get_position_distance(arrivals, vehicle.position))
+
+            max_distance = max(distances)
+            waiting_time = self._get_ride_time(max_distance, stops=len(order.destinations) - 1)
+
+            next_position_idx = [idx for idx, d in enumerate(distances) if d == max_distance][0]
+            next_position = order.destinations[next_position_idx]
+
+            self.clock.postpone_action(
+                action=self._stop_ride,
+                wait=waiting_time,
+                args=[order, vehicle, next_position]
+            )
+
+    def _stop_ride(self, order, vehicle, position):
+        """
+            Once the ride is done:
+            - Change vehicle status to WAITING
+            - Change vehicle position
+            - Change order to DONE
+        """
+        vehicle.change_status(OrderStatus.DONE)
+        vehicle.change_status(VehicleStatus.DROP_PASSENGERS)
+        vehicle.position = position
 
     def _new_orders(self):
         """
@@ -169,7 +233,5 @@ class Game():
                 vehicles = self._get_nearest_vehicles(order)
                 if len(vehicles) > 0:
                     self._start_loading(order, vehicles)
-                else:
-                    print("All vehicles are complete ")
 
         print("Done")
