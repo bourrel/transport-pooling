@@ -168,20 +168,19 @@ class Game():
         next_position = order.begin[next_position_idx]
 
         nearest_vehicle.change_status(VehicleStatus.LOADING_PASSENGERS)
+        order.change_status(OrderStatus.IN_PROGRESS)
         self.clock.postpone_action(action=self._start_ride, wait=waiting_time, args=[order, nearest_vehicle, next_position])
 
     def _start_ride(self, order, vehicle, position):
         """
             Once a vehicle has made a ride to departure, load all passengers.
 
-            - Change order status to DONE
             - Change vehicle status to DRIVING
             - Change vehicle position
             - Compute driving time for vehicle
                 - Compute time from current to nearest destination address
         """
         self._save_event("START_RIDE", order=order, vehicle=vehicle)
-        order.change_status(OrderStatus.IN_PROGRESS)
         vehicle.change_status(VehicleStatus.DRIVING)
         vehicle.position = position
 
@@ -283,6 +282,9 @@ class Game():
             vehicle_status.count(VehicleStatus.DROP_PASSENGERS),
         ])
         return 0
+
+    def _waiting_orders(self):
+        return [o for o in self.orders if o.status == OrderStatus.WAITING]
 
     def run(self):
         """
