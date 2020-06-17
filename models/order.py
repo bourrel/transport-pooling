@@ -1,14 +1,14 @@
-from uuid import uuid4
 from enum import Enum
 
 from .position import Position
+from config.database import cursor, db
 
 
 class OrderStatus(Enum):
-    UNAVALAIBLE = 1
-    WAITING = 2
-    IN_PROGRESS = 3
-    DONE = 4
+    UNAVALAIBLE = "UNAVALAIBLE"
+    WAITING = "WAITING"
+    IN_PROGRESS = "IN_PROGRESS"
+    DONE = "DONE"
 
 
 class Order():
@@ -18,11 +18,19 @@ class Order():
         It can contain one or more rides.
     """
 
-    def __init__(self, start: Position, end: Position):
-        self._id = uuid4()
+    def __init__(self, start: Position, end: Position, game_id=None):
+        self._id = None
         self.begin = [start]
         self.destinations = [end]
         self.status = OrderStatus.UNAVALAIBLE
+        self.game_id = game_id
+
+    def save_in_database(self):
+        if self.game_id != None:
+            query = "INSERT INTO adenoa.order SET status = \"{}\", departures = 1, arrivals = 1, game_id = {};".format(str(self.status), self.game_id)
+            cursor.execute(query)
+            db.commit()
+            self._id = cursor.lastrowid
 
     def change_status(self, status):
         self.status = status
@@ -33,6 +41,16 @@ class Order():
         """
         self.begin.extend(new_order.begin)
         self.destinations.extend(new_order.destinations)
+
+        if self.game_id:
+            query = """
+                UPDATE adenoa.order SET
+                    departures = {},
+                    arrivals = {}
+                WHERE id = {};
+            """.format(len(self.begin), len(self.destinations), self._id)
+            cursor.execute(query)
+            db.commit()
 
     def get_begin_centroid(self):
         if len(self.begin) == 1:
