@@ -27,4 +27,5 @@ if __name__ == "__main__":
         print(city.name, ":", city.importance, ",", city.population)
 
     game = Game(plan, args.out_file)
+    print("===== Game", game._id, "=====")
     game.run()

@@ -45,6 +45,18 @@ class Game():
         db.commit()
         self._id = cursor.lastrowid
 
+    def _save_event(self, event_type, order=None, vehicle=None):
+        query = """
+            INSERT INTO adenoa.event SET
+                event.game_id = {},
+                event.time = {},
+                event.type = \"{}\",
+                event.order = {},
+                event.vehicle = {}
+            """.format(self._id, self.clock.time, event_type, order._id, vehicle._id)
+        cursor.execute(query)
+        db.commit()
+
     def _init_vehicles(self):
         self.vehicles = self.plan.insert_vehicles(game_id=self._id)
 
@@ -136,6 +148,7 @@ class Game():
             - Change vehicle status to LOADING_PASSENGERS
         """
         nearest_vehicle = vehicles[0] # vehicles are already sorted by distance
+        self._save_event("START_LOADING", order=order, vehicle=nearest_vehicle)
 
         distances = []
         for departures in order.begin:
@@ -160,6 +173,7 @@ class Game():
             - Compute driving time for vehicle
                 - Compute time from current to nearest destination address
         """
+        self._save_event("START_RIDE", order=order, vehicle=vehicle)
         order.change_status(OrderStatus.IN_PROGRESS)
         vehicle.change_status(VehicleStatus.DRIVING)
         vehicle.position = position
@@ -190,6 +204,7 @@ class Game():
                 - Compute time from current to further address
                 - Add 2 minutes for each stop
         """
+        self._save_event("START_DROP", order=order, vehicle=vehicle)
         vehicle.change_status(VehicleStatus.DROP_PASSENGERS)
         vehicle.position = position
 
@@ -219,6 +234,7 @@ class Game():
             - Change vehicle position
             - Change order to DONE
         """
+        self._save_event("STOP_RIDE", order=order, vehicle=vehicle)
         order.change_status(OrderStatus.DONE)
         vehicle.change_status(VehicleStatus.WAITING)
         vehicle.position = position
