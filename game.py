@@ -97,7 +97,7 @@ class Game():
                 possible_clusters.append((idx, distance_begin, distance_end))
         return possible_clusters
 
-    def _cluster_or_insert_orders(self, new_orders):
+    def _cluster_or_insert_order(self, new_order):
         """
             Try to find orders that can be matched together.
 
@@ -105,15 +105,22 @@ class Game():
                 - starting point within a radius of 1 km
                 - ending point within a radius of 10 km
             Otherwise, insert them as new orders
-        """
-        for new_order in new_orders:
-            possible_clusters = self._get_new_order_possible_clusters(new_order)
 
-            if len(possible_clusters) > 0:
-                cluster_idx = sorted(possible_clusters, key=lambda x: x[1])[0]
-                self.orders[cluster_idx[0]].insert_order(new_order)
-            else:
-                self.orders.append(new_order)
+            return
+                - True if a new order is created
+                - False if the order is merged in an other
+        """
+        possible_clusters = self._get_new_order_possible_clusters(new_order)
+
+        if len(possible_clusters) > 0:
+            cluster_idx = sorted(possible_clusters, key=lambda x: x[1])[0]
+            self.orders[cluster_idx[0]].insert_order(new_order)
+            return False
+        else:
+            new_order.save_in_database()
+            self.orders.append(new_order)
+            self.clock.postpone_action(action=new_order.change_status, wait=2, args=[OrderStatus.WAITING])
+            return True
 
     def _get_nearest_vehicles(self, order):
         """
@@ -249,16 +256,16 @@ class Game():
                 - 13h
                 - 18h
         """
-        orders = random.randint(0, 10)
-
-        new_orders = []
-        for _ in range(orders):
+        order_inserted = 0
+        for _ in range(random.randint(0, 10)):
             start = self.plan.create_address()
             end = self.plan.create_address()
-            order = Order(start, end)
-            new_orders.append(order)
-            self.clock.postpone_action(action=order.change_status, wait=2, args=[OrderStatus.WAITING])
-        return new_orders, orders
+            order = Order(start, end, game_id=self._id)
+
+            # Try to cluster orders
+            if self._cluster_or_insert_order(order) == True:
+                order_inserted += 1
+        return order_inserted
 
     def _report(self, order_count):
         order_status = [order.status for order in self.orders]
@@ -287,11 +294,10 @@ class Game():
 
         progress_bar = tqdm(self.clock.max + 1)
         while self.clock.next():
+            order_count = self._new_orders() # Get new orders
             self._report(order_count)
-            new_orders, order_count = self._new_orders() # Get new orders
-            self._cluster_or_insert_orders(new_orders) # Try to cluster orders
 
-            for order in self.orders:
+            for order in self._waiting_orders():
                 vehicles = self._get_nearest_vehicles(order)
                 if len(vehicles) > 0:
                     self._start_loading(order, vehicles)
