@@ -298,7 +298,7 @@ class Game():
         for _ in range(val):
             start = self.plan.create_address()
             end = self.plan.create_address()
-            order = Order(start, end, game_id=self._id)
+            order = Order(start, end, created_at=self.clock.time, game_id=self._id)
 
             # Try to cluster orders
             if self._cluster_or_insert_order(order) == True:
