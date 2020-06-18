@@ -282,7 +282,12 @@ class Game():
         """
         hour = int(self.clock.time / 60)
         minute = int(self.clock.time % 60)
-        probability = self.hour_orders[hour][minute]
+
+        try:
+            probability = self.hour_orders[hour][minute]
+        except KeyError:
+            # In case there is no order in the current hour
+            return 0
 
         if probability < 1:
             val = random.random() > 1 - probability
