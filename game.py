@@ -1,8 +1,10 @@
 import csv
 import math
 import random
+from collections import Counter
 
 import mpu
+import numpy as np
 from tqdm import tqdm
 
 from config.database import cursor, db
@@ -37,6 +39,7 @@ class Game():
         ])
         self._save_in_database()
         self._init_vehicles()
+        self._init_order_count()
 
     def _save_in_database(self):
         cities = ", ".join([str(c) for c in self.plan.cities])
@@ -56,6 +59,25 @@ class Game():
             """.format(self._id, self.clock.time, event_type, order._id, vehicle._id)
         cursor.execute(query)
         db.commit()
+
+    def _init_order_count(self):
+        """
+        """
+        self.hour_orders = {}
+
+        order_count = int(self.plan.total_population * 0.75)
+        s = np.random.normal(12, 3, order_count)
+        bins = np.digitize(s, range(0, 24))
+        c = Counter(bins)
+
+        order_per_hour = sorted(list(c.items()), key=lambda x: x[0])
+
+        for hour, val in order_per_hour:
+            random_values = [random.random() for _ in range(0, 60)]
+            random_sum = sum(random_values)
+            self.hour_orders[hour] = []
+            for rnd in random_values:
+                self.hour_orders[hour].append(rnd / random_sum * val)
 
     def _init_vehicles(self):
         self.vehicles = self.plan.insert_vehicles(game_id=self._id)
@@ -250,13 +272,22 @@ class Game():
             Add a new order to the game with position X, Y
 
             TODO:
-                Generate orders following a multi-variate distribution which will peak at:
+                Generate orders following a multimodal distribution which will peak at:
                 - 8h30
                 - 13h
                 - 18h
         """
+        hour = int(self.clock.time / 60)
+        minute = int(self.clock.time % 60)
+        probability = self.hour_orders[hour][minute]
+
+        if probability < 1:
+            val = random.random() > 1 - probability
+        else:
+            val = math.ceil(probability)
+
         order_inserted = 0
-        for _ in range(random.randint(0, 10)):
+        for _ in range(val):
             start = self.plan.create_address()
             end = self.plan.create_address()
             order = Order(start, end, game_id=self._id)
