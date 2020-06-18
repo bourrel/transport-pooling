@@ -153,7 +153,7 @@ class Game():
         """
         vehicle_list = []
         for idx, vehicle in enumerate(self.vehicles):
-            if vehicle.status == VehicleStatus.WAITING or vehicle.status == VehicleStatus.LOADING_PASSENGERS:
+            if vehicle.status == VehicleStatus.WAITING:
                 distance = self._get_position_distance(vehicle.position, order.get_begin_centroid())
                 vehicle_list.append((idx, distance))
 
