@@ -24,6 +24,7 @@ class Order():
         self.destinations = [end]
         self.status = OrderStatus.UNAVALAIBLE
         self.game_id = game_id
+        self.full = False
 
     def save_in_database(self):
         if self.game_id != None:
@@ -42,13 +43,17 @@ class Order():
         self.begin.extend(new_order.begin)
         self.destinations.extend(new_order.destinations)
 
+        if len(self.begin) >= 25:
+            self.full == True
+
         if self.game_id:
             query = """
                 UPDATE adenoa.order SET
                     departures = {},
-                    arrivals = {}
+                    arrivals = {},
+                    full = {}
                 WHERE id = {};
-            """.format(len(self.begin), len(self.destinations), self._id)
+            """.format(len(self.begin), len(self.destinations), int(self.full), self._id)
             cursor.execute(query)
             db.commit()
 

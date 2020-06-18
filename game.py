@@ -135,14 +135,17 @@ class Game():
         possible_clusters = self._get_new_order_possible_clusters(new_order)
 
         if len(possible_clusters) > 0:
-            cluster_idx = sorted(possible_clusters, key=lambda x: x[1])[0]
-            self.orders[cluster_idx[0]].insert_order(new_order)
-            return False
-        else:
-            new_order.save_in_database()
-            self.orders.append(new_order)
-            self.clock.postpone_action(action=new_order.change_status, wait=2, args=[OrderStatus.WAITING])
-            return True
+            sorted_cluster_indexes = sorted(possible_clusters, key=lambda x: x[1])
+            for cluster_index in sorted_cluster_indexes:
+                current_order = self.orders[cluster_index[0]]
+                if current_order.full is False:
+                    current_order.insert_order(new_order)
+                    return False
+
+        new_order.save_in_database()
+        self.orders.append(new_order)
+        self.clock.postpone_action(action=new_order.change_status, wait=2, args=[OrderStatus.WAITING])
+        return True
 
     def _get_nearest_vehicles(self, order):
         """
