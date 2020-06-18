@@ -13,8 +13,8 @@ from models.order import Order, OrderStatus
 from models.plan import Plan
 from models.vehicle import VehicleStatus
 
-MAX_START_RADIUS = 1000 # 1 km
-MAX_END_RADIUS = 5000 # 5 km
+MAX_START_RADIUS = 2000 # 2 km
+MAX_END_RADIUS = 8000 # 8 km
 
 
 class Game():
@@ -27,7 +27,7 @@ class Game():
         out_file = open(out_file, "w")
         self.out_file = csv.writer(out_file)
         self.out_file.writerow([
-            "Order count", 
+            "Order count",
             "Order unavailable",
             "Order waiting",
             "Order in progress",
@@ -65,7 +65,7 @@ class Game():
         """
         self.hour_orders = {}
 
-        order_count = int(self.plan.total_population * 0.75)
+        order_count = int(self.plan.total_population * 0.25)
         s = np.random.normal(12, 3, order_count)
         bins = np.digitize(s, range(0, 24))
         c = Counter(bins)
@@ -124,8 +124,8 @@ class Game():
             Try to find orders that can be matched together.
 
             Orders that can be clustered must have:
-                - starting point within a radius of 1 km
-                - ending point within a radius of 10 km
+                - starting point within a radius of X km
+                - ending point within a radius of Y km
             Otherwise, insert them as new orders
 
             return
