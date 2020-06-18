@@ -18,17 +18,25 @@ class Order():
         It can contain one or more rides.
     """
 
-    def __init__(self, start: Position, end: Position, game_id=None):
+    def __init__(self, start: Position, end: Position, created_at: int, game_id=None):
         self._id = None
         self.begin = [start]
         self.destinations = [end]
         self.status = OrderStatus.UNAVALAIBLE
         self.game_id = game_id
         self.full = False
+        self.created_at = created_at
 
     def save_in_database(self):
         if self.game_id != None:
-            query = "INSERT INTO adenoa.order SET status = \"{}\", departures = 1, arrivals = 1, game_id = {};".format(str(self.status), self.game_id)
+            query = """
+                INSERT INTO adenoa.order SET
+                    status = \"{}\",
+                    departures = 1,
+                    arrivals = 1,
+                    game_id = {},
+                    created_at = {};
+                """.format(str(self.status), self.game_id, self.created_at)
             cursor.execute(query)
             db.commit()
             self._id = cursor.lastrowid
